@@ -21,7 +21,7 @@ void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner = GetOwner();
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+	
 }
 
 void UOpenDoor::OpenDoor()
@@ -41,7 +41,7 @@ void UOpenDoor::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompo
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens))
+	if (GetTotalMassOnPressurePlate()>ThresholdMass)
 	{
 		OpenDoor();
 		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
@@ -53,5 +53,20 @@ void UOpenDoor::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompo
 	}
 
 	
+}
+
+float UOpenDoor::GetTotalMassOnPressurePlate()
+{
+	float TotalMass = 0.f;
+	TArray <AActor*> ActorsOnPressurePlate;
+	PressurePlate->GetOverlappingActors(ActorsOnPressurePlate);
+	for (const auto& actor : ActorsOnPressurePlate) 
+	{
+		TotalMass += actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+
+		UE_LOG(LogTemp, Warning, TEXT("%s Actor is in box "), *actor->GetName());
+	}
+
+	return TotalMass;
 }
 
