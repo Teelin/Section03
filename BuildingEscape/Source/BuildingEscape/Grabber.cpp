@@ -22,7 +22,28 @@ void UGrabber::BeginPlay()
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning, TEXT("Grabber reporting for duty!"));
-	
+
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	if (PhysicsHandle)
+	{
+		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s is missing Physics handle"), *GetOwner()->GetName());
+	}
+
+	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+	if (InputComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Input Component has been found"));
+		InputComponent->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
+		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s is missing an Input Component"), *GetOwner()->GetName());
+	}
 }
 
 
@@ -33,7 +54,6 @@ void UGrabber::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompon
 	FVector MyLocation;
 	FRotator MyRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(MyLocation,MyRotation);
-	//UE_LOG(LogTemp, Warning, TEXT("My Location is %s and my Rotation is %s"), *MyLocation.ToString(), *MyRotation.ToString());
 	Trace(MyLocation, MyRotation);
 }
 
@@ -42,14 +62,25 @@ void UGrabber::Trace(FVector MyLocation, FRotator MyRotation)
 	FVector Start = MyLocation;
 	FVector End = Start + MyRotation.Vector() * Reach;
 
-	FHitResult HitData(ForceInit);
+	FHitResult HitData;
 	FCollisionObjectQueryParams ObjectsToQuery = ECollisionChannel::ECC_PhysicsBody;
 	FCollisionQueryParams CollisionParameters;
 	
 
 	if (GetWorld()->LineTraceSingleByObjectType(HitData, Start, End, ObjectsToQuery,CollisionParameters)) 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit Dynamic"));
+		AActor *HitActor = HitData.GetActor();
+
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetName());
 	}
 	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0, 0, 1.f);
+}
+
+void UGrabber::Grab()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab Pressed"));
+}
+void UGrabber::Release()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab Released"));
 }
