@@ -11,8 +11,6 @@ UOpenDoor::UOpenDoor()
 	// off to improve performance if you don't need them.
 	bWantsBeginPlay = true;
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -21,50 +19,35 @@ void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner = GetOwner();
+	if (!PressurePlate) {
+		UE_LOG(LogTemp, Error, TEXT("No Trigger Volume on %s"),*Owner->GetName());
+	}
 	
 }
-
-void UOpenDoor::OpenDoor()
-{
-	Owner->SetActorRotation(FRotator(0.0f, OpenAngle, 0.0f));
-}
-
-void UOpenDoor::CloseDoor()
-{
-	Owner->SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
-}
-
-
-
 // Called every frame
 void UOpenDoor::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
-
+	
 	if (GetTotalMassOnPressurePlate()>ThresholdMass)
 	{
-		OpenDoor();
-		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
+		OnOpenRequest.Broadcast();
 	}
-
-	if( GetWorld()->GetTimeSeconds()- LastDoorOpenTime >= DoorCloseDelay)
+	else
 	{
-		CloseDoor();
+		OnCloseRequest.Broadcast();
 	}
-
-	
 }
 
 float UOpenDoor::GetTotalMassOnPressurePlate()
 {
 	float TotalMass = 0.f;
 	TArray <AActor*> ActorsOnPressurePlate;
+	if (!PressurePlate) {return TotalMass;}
 	PressurePlate->GetOverlappingActors(ActorsOnPressurePlate);
 	for (const auto& actor : ActorsOnPressurePlate) 
 	{
 		TotalMass += actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
-
-		UE_LOG(LogTemp, Warning, TEXT("%s Actor is in box "), *actor->GetName());
 	}
 
 	return TotalMass;
