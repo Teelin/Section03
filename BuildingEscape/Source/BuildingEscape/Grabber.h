@@ -24,12 +24,22 @@ public:
 	const FHitResult GetFirstPhysicsBodyInReach();
 	void FindPhysicsHandleComponent();
 	void SetupInputComponent();
+	FVector GetLineStart();
+	FVector GetLineEnd();
+
+	void SetPlayerViewport();
 
 private:
 
 	float Reach = 100.f;
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 	UInputComponent* InputComponent = nullptr;
+	FVector MyLocation;
+	FRotator MyRotation;
+	FVector LineStart;
+	FVector LineEnd;
+	
+
 
 	void Grab();
 
